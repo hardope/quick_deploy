@@ -2,8 +2,8 @@
 
 update_install() {
     echo "Updating system and installing required packages..."
-    sudo apt-get update >/dev/null && sudo apt-get upgrade -y >/dev/null
-    sudo apt-get -y install python3-pip python3-venv git nginx >/dev/null
+    sudo apt-get update
+    sudo apt-get -y install python3-pip python3-venv nginx
     echo "System updated and required packages installed."
 }
 
@@ -25,8 +25,44 @@ check_file() {
 check_venv() {
     echo "Checking for an existing virtual environment (venv) in the project directory..."
     if [ -d "$1/venv" ]; then
-        echo "Virtual environment found in the project directory."
-        export VENV_PATH="$1/venv"
+        read -p "A virtual environment is found in the project directory. Do you want to use it? (yes/no) " use_venv
+        if [ "$use_venv" = "yes" ]; then
+            echo "Using the existing virtual environment in the project directory."
+            export VENV_PATH="$1/venv"
+            source "$VENV_PATH/bin/activate" && python3 -m pip install -r "$1/requirements.txt" gunicorn uvicorn fastapi >/dev/null
+            deactivate
+        else
+            read -p "Proceeding without using the existing virtual environment. Do you have a virtual environment located elsewhere? (yes/no) " venv_elsewhere
+            if [ "$venv_elsewhere" = "yes" ]; then
+                while true; do
+                    read -p "Enter the absolute path to your virtual environment directory: " venv_path
+                    if [ -d "$venv_path" ]; then
+                        echo "Virtual environment found at $venv_path."
+                        export VENV_PATH="$venv_path"
+                        source "$VENV_PATH/bin/activate" && python3 -m pip install gunicorn uvicorn fastapi >/dev/null
+                        deactivate
+                        break
+                    else
+                        echo "Directory not found. Please enter a valid path."
+                    fi
+                done
+            else
+                if check_file "$1/requirements.txt"; then
+                    echo "Setting up a new virtual environment and installing required packages from requirements.txt..."
+                    python3 -m venv "$1/venv" >/dev/null
+                    source "$1/venv/bin/activate" && python3 -m pip install -r "$1/requirements.txt" gunicorn uvicorn fastapi >/dev/null
+                    deactivate
+                    export VENV_PATH="$1/venv"
+                else
+                    echo "No virtual environment or requirements.txt found. Installing FastAPI, Gunicorn, and Uvicorn in a new virtual environment..."
+                    python3 -m venv "$1/venv" >/dev/null
+                    source "$1/venv/bin/activate" && python3 -m pip install gunicorn uvicorn fastapi >/dev/null
+                    deactivate
+                    export VENV_PATH="$1/venv"
+                    echo "FastAPI, Gunicorn, and Uvicorn installed in the newly created virtual environment. Please note the implications of not having a requirements.txt file for dependency management."
+                fi
+            fi
+        fi
     else
         read -p "No virtual environment found. Do you have a virtual environment located elsewhere? (yes/no) " venv_elsewhere
 
@@ -36,6 +72,8 @@ check_venv() {
                 if [ -d "$venv_path" ]; then
                     echo "Virtual environment found at $venv_path."
                     export VENV_PATH="$venv_path"
+                    source "$VENV_PATH/bin/activate" && python3 -m pip install gunicorn uvicorn fastapi >/dev/null
+                    deactivate
                     break
                 else
                     echo "Directory not found. Please enter a valid path."
@@ -45,16 +83,16 @@ check_venv() {
             if check_file "$1/requirements.txt"; then
                 echo "Setting up a new virtual environment and installing required packages from requirements.txt..."
                 python3 -m venv "$1/venv" >/dev/null
-                source "$1/venv/bin/activate" && python3 -m pip install -r "$1/requirements.txt" >/dev/null
+                source "$1/venv/bin/activate" && python3 -m pip install -r "$1/requirements.txt" gunicorn uvicorn fastapi >/dev/null
                 deactivate
                 export VENV_PATH="$1/venv"
             else
-                echo "No virtual environment or requirements.txt found. Installing FastAPI and Gunicorn in a new virtual environment..."
+                echo "No virtual environment or requirements.txt found. Installing FastAPI, Gunicorn, and Uvicorn in a new virtual environment..."
                 python3 -m venv "$1/venv" >/dev/null
-                source "$1/venv/bin/activate" && python3 -m pip install fastapi gunicorn >/dev/null
+                source "$1/venv/bin/activate" && python3 -m pip install gunicorn uvicorn fastapi >/dev/null
                 deactivate
                 export VENV_PATH="$1/venv"
-                echo "FastAPI and Gunicorn installed in the newly created virtual environment. Please note the implications of not having a requirements.txt file for dependency management."
+                echo "FastAPI, Gunicorn, and Uvicorn installed in the newly created virtual environment. Please note the implications of not having a requirements.txt file for dependency management."
             fi
         fi
     fi
