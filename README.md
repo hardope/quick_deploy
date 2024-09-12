@@ -4,16 +4,17 @@ Script to deploy fastapi on ubutu servers
 ## Usage
 
 * clone your repository into your server
-* create your virtual environment
-* run uvicorn and verify that your project is running
-* run
+* Ensure you have a requirements.txt file to avoid errors or create your virtual environment `venv` in the project folder
+* Verify if your project is running manually if you ceated your virtual environment
+* run script
 ```
+# grant executable permission
+$ chmod +x deploy
+
+# run script
 $ ./deploy.sh
 ```
 
 # Note - refuse the nginx configuration is you existing nginx config as this will remove all prior configurations
 
-```
-Do you want to set up NGINX (yes/no)? 
-# Use the no option if you have existing configuration
-```
+This script overwrites existin nginx config and you need to handle static files manually if you need to
