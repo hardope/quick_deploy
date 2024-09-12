@@ -1,5 +1,5 @@
-# deploy_fastapi
-Script to deploy fastapi on ubutu servers
+# Auto Deploy Python projects
+Script to python projects on ubuntu servers
 
 ## Usage
 
@@ -15,6 +15,5 @@ $ chmod +x deploy
 $ ./deploy.sh
 ```
 
-# Note - refuse the nginx configuration is you existing nginx config as this will remove all prior configurations
-
+# Note
 This script overwrites existin nginx config and you need to handle static files manually if you need to
